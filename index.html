@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Number Guessing Game — Adwait Mulay</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/cpp.min.js"></script>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{background:#0d1117;color:#e6edf3;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;line-height:1.6;}
+  a{color:#7c77dd;text-decoration:none;}
+  nav{display:flex;align-items:center;justify-content:space-between;padding:16px 40px;border-bottom:1px solid #21262d;position:sticky;top:0;background:#0d1117;z-index:10;}
+  .nav-left{display:flex;align-items:center;gap:12px;}
+  .avatar{width:32px;height:32px;border-radius:50%;background:#1D9E75;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;color:#fff;}
+  .nav-name{font-size:14px;color:#e6edf3;font-weight:500;}
+  .nav-repo{font-size:14px;color:#1D9E75;font-weight:600;}
+  .nav-sep{color:#444;}
+  .btn{padding:5px 14px;border-radius:6px;font-size:13px;border:1px solid #30363d;cursor:pointer;background:#21262d;color:#e6edf3;}
+  .btn-primary{background:#1D9E75;border-color:#1D9E75;color:#fff;}
+
+  .hero{padding:60px 40px 40px;max-width:960px;margin:0 auto;}
+  .badge{display:inline-flex;align-items:center;gap:6px;background:#161b22;border:1px solid #30363d;border-radius:20px;padding:4px 12px;font-size:12px;color:#8b949e;margin-bottom:20px;}
+  .badge span{width:8px;height:8px;border-radius:50%;background:#1D9E75;display:inline-block;}
+  h1{font-size:36px;font-weight:700;margin-bottom:12px;}
+  h1 em{color:#1D9E75;font-style:normal;}
+  .subtitle{font-size:16px;color:#8b949e;max-width:600px;margin-bottom:32px;}
+  .tags{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:40px;}
+  .tag{padding:4px 12px;border-radius:20px;font-size:12px;font-weight:500;}
+  .tag-cpp{background:#1a1f35;color:#7c77dd;border:1px solid #534AB7;}
+  .tag-oop{background:#0d1f17;color:#3fb950;border:1px solid #1D9E75;}
+  .tag-algo{background:#1f1a0d;color:#d29922;border:1px solid #9e6a03;}
+
+  .two-col{display:grid;grid-template-columns:1fr 1fr;gap:32px;max-width:960px;margin:0 auto 48px;padding:0 40px;align-items:start;}
+
+  /* GAME */
+  .game-wrap{background:#161b22;border:1px solid #21262d;border-radius:16px;overflow:hidden;}
+  .game-label{padding:14px 18px;font-size:12px;font-weight:600;color:#8b949e;text-transform:uppercase;letter-spacing:0.08em;border-bottom:1px solid #21262d;display:flex;align-items:center;gap:8px;}
+  .game-label::before{content:'▶';color:#1D9E75;font-size:10px;}
+  .game-body{padding:24px 20px;}
+
+  /* difficulty */
+  .diff-btns{display:flex;gap:10px;margin-bottom:24px;}
+  .diff-btn{flex:1;padding:10px;border-radius:8px;border:1.5px solid #30363d;background:#0d1117;color:#8b949e;font-size:13px;font-weight:600;cursor:pointer;transition:all 0.15s;}
+  .diff-btn.active-easy{border-color:#1D9E75;background:#0d1f17;color:#1D9E75;}
+  .diff-btn.active-hard{border-color:#f85149;background:#1f0d0d;color:#f85149;}
+
+  .game-info{display:flex;justify-content:space-between;margin-bottom:16px;font-size:12px;color:#8b949e;}
+  .game-info span{background:#0d1117;border:1px solid #21262d;border-radius:6px;padding:4px 10px;}
+
+  .hint-box{background:#0d1117;border:1px solid #21262d;border-radius:10px;padding:16px;text-align:center;margin-bottom:16px;min-height:64px;display:flex;align-items:center;justify-content:center;}
+  .hint-text{font-size:14px;color:#8b949e;}
+  .hint-text.high{color:#f85149;}
+  .hint-text.low{color:#3b82f6;}
+  .hint-text.win{color:#1D9E75;font-weight:700;font-size:16px;}
+  .hint-text.lose{color:#f85149;font-weight:700;font-size:16px;}
+
+  .guess-row{display:flex;gap:10px;margin-bottom:12px;}
+  .guess-input{flex:1;padding:12px 14px;border-radius:8px;border:1.5px solid #30363d;background:#0d1117;color:#e6edf3;font-size:16px;font-family:inherit;outline:none;}
+  .guess-input:focus{border-color:#1D9E75;}
+  .guess-input:disabled{opacity:0.4;}
+  .guess-btn{padding:12px 20px;border-radius:8px;background:#1D9E75;border:none;color:#fff;font-size:14px;font-weight:600;cursor:pointer;}
+  .guess-btn:disabled{opacity:0.4;cursor:not-allowed;}
+  .guess-btn:hover:not(:disabled){background:#17875f;}
+
+  .history{margin-bottom:16px;display:flex;flex-wrap:wrap;gap:6px;min-height:28px;}
+  .history-pill{padding:3px 10px;border-radius:20px;font-size:12px;font-family:monospace;}
+  .pill-high{background:#1f0d0d;color:#f85149;border:1px solid #f8514940;}
+  .pill-low{background:#0d0d1f;color:#3b82f6;border:1px solid #3b82f640;}
+  .pill-win{background:#0d1f17;color:#1D9E75;border:1px solid #1D9E7540;}
+
+  .restart-btn{width:100%;padding:10px;border-radius:8px;background:#21262d;border:1px solid #30363d;color:#8b949e;font-size:13px;cursor:pointer;}
+  .restart-btn:hover{background:#30363d;color:#e6edf3;}
+
+  /* CODE */
+  .code-wrap{border:1px solid #21262d;border-radius:16px;overflow:hidden;}
+  .code-header{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;background:#161b22;border-bottom:1px solid #21262d;}
+  .code-dots{display:flex;gap:6px;}
+  .dot{width:11px;height:11px;border-radius:50%;}
+  .dot-r{background:#ff5f57;}.dot-y{background:#febc2e;}.dot-g{background:#28c840;}
+  .code-filename{font-size:12px;color:#8b949e;font-family:monospace;}
+  .copy-btn{font-size:11px;color:#8b949e;background:none;border:1px solid #30363d;border-radius:4px;padding:3px 9px;cursor:pointer;}
+  pre{margin:0!important;border-radius:0!important;max-height:560px;overflow-y:auto;}
+  pre code{font-size:12px!important;line-height:1.65!important;font-family:'SF Mono',Consolas,monospace!important;}
+
+  .section{max-width:960px;margin:0 auto 48px;padding:0 40px;}
+  .section-title{font-size:13px;font-weight:600;color:#8b949e;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:16px;display:flex;align-items:center;gap:8px;}
+  .section-title::after{content:'';flex:1;height:1px;background:#21262d;}
+  .breakdown{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  .card{background:#161b22;border:1px solid #21262d;border-radius:10px;padding:18px;}
+  .card-title{font-size:14px;font-weight:600;color:#e6edf3;margin-bottom:6px;}
+  .card-desc{font-size:13px;color:#8b949e;line-height:1.5;}
+  .card-line{font-size:11px;color:#1D9E75;margin-top:8px;font-family:monospace;}
+  footer{border-top:1px solid #21262d;padding:24px 40px;text-align:center;font-size:13px;color:#8b949e;}
+  @media(max-width:700px){.two-col{grid-template-columns:1fr;}.breakdown{grid-template-columns:1fr;}nav{padding:12px 16px;}.hero,.section,.two-col{padding-left:16px;padding-right:16px;}h1{font-size:26px;}}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-left">
+    <div class="avatar">AM</div>
+    <span class="nav-name">adwaitmulay</span>
+    <span class="nav-sep">/</span>
+    <span class="nav-repo">number-guessing-game</span>
+  </div>
+  <div style="display:flex;gap:10px;">
+    <a href="https://github.com/adwaitmulay" target="_blank"><button class="btn">GitHub</button></a>
+    <a href="mailto:adwait.mulay071@gmail.com"><button class="btn btn-primary">Contact</button></a>
+  </div>
+</nav>
+
+<div class="hero">
+  <div class="badge"><span></span> C++ Project</div>
+  <h1>Number <em>Guessing Game</em></h1>
+  <p class="subtitle">A 2-difficulty-level CLI game built in C++ using rand(), loops, and branching logic — Easy mode (1–50, 10 attempts) and Hard mode (1–100, 5 attempts). Try it live on the left, read the source on the right.</p>
+  <div class="tags">
+    <span class="tag tag-cpp">C++</span>
+    <span class="tag tag-oop">rand() & srand()</span>
+    <span class="tag tag-algo">Dynamic Difficulty</span>
+    <span class="tag tag-algo">Input Validation</span>
+    <span class="tag tag-oop">Branching Logic</span>
+  </div>
+</div>
+
+<div class="two-col">
+
+  <!-- LEFT: Working Game -->
+  <div class="game-wrap">
+    <div class="game-label">Live demo</div>
+    <div class="game-body">
+
+      <div class="diff-btns">
+        <button class="diff-btn active-easy" id="btn-easy" onclick="setDiff('easy')">🟢 Easy (1–50, 10 tries)</button>
+        <button class="diff-btn" id="btn-hard" onclick="setDiff('hard')">🔴 Hard (1–100, 5 tries)</button>
+      </div>
+
+      <div class="game-info">
+        <span id="range-label">Range: 1 – 50</span>
+        <span id="attempts-label">Attempts left: 10</span>
+      </div>
+
+      <div class="hint-box">
+        <div class="hint-text" id="hint">Pick a difficulty and start guessing!</div>
+      </div>
+
+      <div class="history" id="history"></div>
+
+      <div class="guess-row">
+        <input class="guess-input" id="guess-input" type="number" placeholder="Enter your guess..." onkeydown="if(event.key==='Enter')submitGuess()"/>
+        <button class="guess-btn" id="guess-btn" onclick="submitGuess()">Guess</button>
+      </div>
+
+      <button class="restart-btn" onclick="restartGame()">↺ New Game</button>
+    </div>
+  </div>
+
+  <!-- RIGHT: C++ Source -->
+  <div class="code-wrap">
+    <div class="code-header">
+      <div class="code-dots">
+        <div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div>
+      </div>
+      <span class="code-filename">guessing_game.cpp</span>
+      <button class="copy-btn" onclick="copyCode()">Copy</button>
+    </div>
+    <pre><code class="language-cpp">#include &lt;iostream&gt;
+#include &lt;cstdlib&gt;
+#include &lt;ctime&gt;
+using namespace std;
+
+// Game config per difficulty
+struct Difficulty {
+    int maxNum;
+    int maxAttempts;
+    string name;
+};
+
+void playGame(Difficulty diff) {
+    srand(time(0));
+    int secret = rand() % diff.maxNum + 1;
+    int attempts = diff.maxAttempts;
+    int guess;
+
+    cout &lt;&lt; "\n=== " &lt;&lt; diff.name &lt;&lt; " Mode ===" &lt;&lt; endl;
+    cout &lt;&lt; "Guess a number between 1 and "
+         &lt;&lt; diff.maxNum &lt;&lt; endl;
+    cout &lt;&lt; "You have " &lt;&lt; attempts
+         &lt;&lt; " attempts." &lt;&lt; endl;
+
+    while (attempts &gt; 0) {
+        cout &lt;&lt; "\nAttempts left: " &lt;&lt; attempts;
+        cout &lt;&lt; "\nYour guess: ";
+
+        // Input validation
+        if (!(cin &gt;&gt; guess)) {
+            cout &lt;&lt; "Invalid input. Numbers only!"
+                 &lt;&lt; endl;
+            cin.clear();
+            cin.ignore(1000, '\n');
+            continue;
+        }
+
+        // Range check
+        if (guess &lt; 1 || guess &gt; diff.maxNum) {
+            cout &lt;&lt; "Out of range! Enter 1 to "
+                 &lt;&lt; diff.maxNum &lt;&lt; endl;
+            continue;
+        }
+
+        attempts--;
+
+        if (guess == secret) {
+            cout &lt;&lt; "\n🎉 Correct! You won in "
+                 &lt;&lt; (diff.maxAttempts - attempts)
+                 &lt;&lt; " guess(es)!" &lt;&lt; endl;
+            return;
+        } else if (guess &lt; secret) {
+            cout &lt;&lt; "Too low! Try higher." &lt;&lt; endl;
+        } else {
+            cout &lt;&lt; "Too high! Try lower." &lt;&lt; endl;
+        }
+    }
+
+    cout &lt;&lt; "\n💀 Out of attempts! The number was "
+         &lt;&lt; secret &lt;&lt; endl;
+}
+
+int main() {
+    int choice;
+    cout &lt;&lt; "=== Number Guessing Game ===" &lt;&lt; endl;
+    cout &lt;&lt; "1. Easy (1-50,  10 attempts)" &lt;&lt; endl;
+    cout &lt;&lt; "2. Hard (1-100,  5 attempts)" &lt;&lt; endl;
+    cout &lt;&lt; "0. Exit" &lt;&lt; endl;
+
+    Difficulty easy = {50,  10, "Easy"};
+    Difficulty hard = {100,  5, "Hard"};
+
+    while (true) {
+        cout &lt;&lt; "\nSelect difficulty: ";
+        cin &gt;&gt; choice;
+
+        if (choice == 0) {
+            cout &lt;&lt; "Thanks for playing!" &lt;&lt; endl;
+            break;
+        } else if (choice == 1) {
+            playGame(easy);
+        } else if (choice == 2) {
+            playGame(hard);
+        } else {
+            cout &lt;&lt; "Invalid choice." &lt;&lt; endl;
+        }
+    }
+    return 0;
+}</code></pre>
+  </div>
+</div>
+
+<!-- BREAKDOWN -->
+<div class="section">
+  <div class="section-title">Code breakdown</div>
+  <div class="breakdown">
+    <div class="card">
+      <div class="card-title">🎲 rand() & srand()</div>
+      <div class="card-desc">Uses srand(time(0)) to seed the random number generator — ensures a different secret number every run, not a predictable sequence.</div>
+      <div class="card-line">srand(time(0)) · rand() % maxNum + 1</div>
+    </div>
+    <div class="card">
+      <div class="card-title">⚡ Dynamic difficulty</div>
+      <div class="card-desc">Difficulty struct holds maxNum and maxAttempts — Easy gets 1–50 with 10 tries, Hard gets 1–100 with 5. One function handles both modes.</div>
+      <div class="card-line">struct Difficulty { maxNum, maxAttempts }</div>
+    </div>
+    <div class="card">
+      <div class="card-title">🛡️ Input validation</div>
+      <div class="card-desc">Handles non-numeric input with cin.clear() and cin.ignore() — prevents runtime crashes on bad input. Range checked separately.</div>
+      <div class="card-line">if (!(cin >> guess)) → clear + ignore</div>
+    </div>
+    <div class="card">
+      <div class="card-title">🔁 Game loop</div>
+      <div class="card-desc">while(attempts > 0) tracks remaining guesses — exits cleanly on win or loss, revealing the secret number if the player runs out.</div>
+      <div class="card-line">while(attempts > 0) · return on win</div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  Built by <a href="https://github.com/adwaitmulay">Adwait Mulay</a> · First-year CS @ DES Pune · <a href="https://linkedin.com/in/adwait-mulay">LinkedIn</a>
+</footer>
+
+<script>
+hljs.highlightAll();
+
+// Game state
+let secret, attemptsLeft, maxNum, maxAttempts, diff='easy', gameOver=false;
+
+function setDiff(d){
+  diff=d;
+  document.getElementById('btn-easy').className='diff-btn'+(d==='easy'?' active-easy':'');
+  document.getElementById('btn-hard').className='diff-btn'+(d==='hard'?' active-hard':'');
+  restartGame();
+}
+
+function restartGame(){
+  gameOver=false;
+  if(diff==='easy'){maxNum=50;maxAttempts=10;}
+  else{maxNum=100;maxAttempts=5;}
+  secret=Math.floor(Math.random()*maxNum)+1;
+  attemptsLeft=maxAttempts;
+  document.getElementById('range-label').textContent=`Range: 1 – ${maxNum}`;
+  document.getElementById('attempts-label').textContent=`Attempts left: ${attemptsLeft}`;
+  document.getElementById('hint').className='hint-text';
+  document.getElementById('hint').textContent='Make your first guess!';
+  document.getElementById('history').innerHTML='';
+  document.getElementById('guess-input').value='';
+  document.getElementById('guess-input').disabled=false;
+  document.getElementById('guess-btn').disabled=false;
+  document.getElementById('guess-input').focus();
+}
+
+function submitGuess(){
+  if(gameOver) return;
+  const input=document.getElementById('guess-input');
+  const hint=document.getElementById('hint');
+  const val=parseInt(input.value);
+
+  if(isNaN(val)||val<1||val>maxNum){
+    hint.className='hint-text';
+    hint.textContent=`Enter a number between 1 and ${maxNum}!`;
+    input.value='';return;
+  }
+
+  attemptsLeft--;
+  document.getElementById('attempts-label').textContent=`Attempts left: ${attemptsLeft}`;
+
+  // Add to history
+  const hist=document.getElementById('history');
+  const pill=document.createElement('span');
+  pill.className='history-pill';
+
+  if(val===secret){
+    pill.className='history-pill pill-win';
+    pill.textContent=val+'✓';
+    hint.className='hint-text win';
+    hint.textContent=`🎉 Correct! You got it in ${maxAttempts-attemptsLeft} guess${maxAttempts-attemptsLeft===1?'':'es'}!`;
+    gameOver=true;
+    document.getElementById('guess-input').disabled=true;
+    document.getElementById('guess-btn').disabled=true;
+  } else if(val<secret){
+    pill.className='history-pill pill-low';
+    pill.textContent=val+'↑';
+    hint.className='hint-text low';
+    hint.textContent=`📈 Too low! Try higher.`;
+  } else {
+    pill.className='history-pill pill-high';
+    pill.textContent=val+'↓';
+    hint.className='hint-text high';
+    hint.textContent=`📉 Too high! Try lower.`;
+  }
+  hist.appendChild(pill);
+
+  if(!gameOver && attemptsLeft===0){
+    hint.className='hint-text lose';
+    hint.textContent=`💀 Out of attempts! The number was ${secret}.`;
+    gameOver=true;
+    document.getElementById('guess-input').disabled=true;
+    document.getElementById('guess-btn').disabled=true;
+  }
+  input.value='';
+  if(!gameOver) input.focus();
+}
+
+function copyCode(){
+  navigator.clipboard.writeText(document.querySelector('pre code').innerText).then(()=>{
+    const b=document.querySelector('.copy-btn');b.textContent='Copied!';setTimeout(()=>b.textContent='Copy',2000);
+  });
+}
+
+// Init
+restartGame();
+</script>
+</body>
+</html>
